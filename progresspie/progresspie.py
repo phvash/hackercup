@@ -7,6 +7,20 @@ class ProgressPie():
 		self.data2write = []
 		self.readFile()
 
+	def readFile(self):
+		f_obj = open('input.txt', 'r')
+		file_lines = f_obj.readlines()
+		f_obj.close()
+		file_lines = [line.strip('\n') for line in file_lines if line.strip('\n') !=""]
+		self.lines_of_input = int(file_lines[0].strip(' '))
+		self.data = file_lines[1:]
+
+	def writeData(self):
+		f_obj = open('output.txt', 'w')
+		self.data2write[-1] = self.data2write[-1].strip('\n')
+		file_lines = f_obj.writelines(self.data2write)
+		f_obj.close()
+
 	def getDist(self, cord_1, cord_2):
 		x1, y1 = cord_1
 		x2, y2 = cord_2
@@ -49,16 +63,17 @@ class ProgressPie():
 		
 		quadrants = []
 		if angle:
-			if angle >= 0 and angle <= 90:
+			if angle >= 0:
 				quadrants.append(1)
-			elif angle >= 90 and angle <= 180:
+			if angle >= 90:
 				quadrants.append(2)
-			elif angle >= 180 and angle <= 270:
+			if angle >= 180:
 				quadrants.append(3)
-			elif angle >= 270 and angle <= 360:
+			if angle >= 270:
 				quadrants.append(4)
-			else:
+			if angle > 360:
 				raise ValueError("Angle can not be greater than 360 deg")
+			print('quadrants: ', quadrants)
 			return quadrants
 		elif coordinates:
 			x, y = coordinates
@@ -73,29 +88,19 @@ class ProgressPie():
 			else:
 				raise ValueError("Invalid point")
 
-	def readFile(self):
-		f_obj = open('input.txt', 'r')
-		file_lines = f_obj.readlines()
-		f_obj.close()
-		file_lines = [line.strip('\n') for line in file_lines if line.strip('\n') !=""]
-		self.count = int(file_lines[0].strip(' '))
-		self.data = file_lines[1:]
-
-	def writeData(self):
-		f_obj = open('output.txt', 'w')
-		file_lines = f_obj.writelines(self.data2write)
-		f_obj.close()
-
 	def valid(self, coordinates, angle):
 		if angle == 0:
+			print("At '0%' all points are white")
 			return False
 		if not self.isOnCircle(coordinates):
+			print("coordinates outside of circle")
 			return False
 		if self.getQuadrants(coordinates=coordinates) not in self.getQuadrants(angle=angle):
+			print("coordinates'quadrant not covered by anggle sector")
 			return False
 		return True
 
-	def check(self, coordinates, angle):
+	def overlap(self, coordinates, angle):
 		angle_given = angle
 		tan_angle = self.findTan(coordinates)
 
@@ -115,20 +120,28 @@ class ProgressPie():
 			return False
 
 	def main(self):
+		count = 1
 		for line in self.data:
 			percentage, x, y = line.split(' ')
 			angle = self.percentage2angle(int(percentage))
 			coordinates = (int(x), int(y))
 			print(angle, coordinates)
-			result = "Case #{}: white\n".format(self.count)
+			result = "Case #{}: White\n".format(count)
 			if not self.valid(coordinates, angle):
-				self.count -= 1
+				count += 1
+				print(result)
 				self.data2write.append(result)
 				continue
-			if self.check(coordinates, angle):
-				result = 'Case #{}: white\n'.format(self.count)
-				self.count -= 1
-				self.data2write.append(result)
+			if self.overlap(coordinates, angle):
+				result = 'Case #{}: Black\n'.format(count)
+				print("valid and overlap")
+				print(result)
+			else:
+				result = 'Case #{}: White\n'.format(count)
+				print("Valid but no overlap")
+				print(result)
+			count += 1
+			self.data2write.append(result)
 		self.writeData()
 
 
